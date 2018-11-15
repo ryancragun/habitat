@@ -12,34 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{cell::Cell,
-          fmt,
-          fs::File,
-          io::{self,
-               Read},
-          net::{IpAddr,
-                SocketAddr,
-                SocketAddrV4,
-                ToSocketAddrs},
-          ops::{Deref,
-                DerefMut},
-          option,
-          result,
-          str::FromStr,
-          sync::{Arc,
-                 Condvar,
-                 Mutex,
-                 RwLock},
-          thread};
-
 use crate::{common::{cli_defaults::{LISTEN_HTTP_ADDRESS_ENVVAR,
                                     LISTEN_HTTP_DEFAULT_IP,
                                     LISTEN_HTTP_DEFAULT_PORT},
                      templating::hooks,
                      types::EnvConfig},
+            error::{Result,
+                    SupError},
+            feat,
             hcore::{crypto,
                     env as henv,
-                    service::ServiceGroup}};
+                    service::ServiceGroup},
+            manager::{self,
+                      service::{HealthCheck,
+                                HealthCheckHook}}};
 use actix;
 use actix_web::{http::{self,
                        StatusCode},
@@ -63,14 +49,25 @@ use prometheus::{self,
 use rustls::ServerConfig;
 use serde_json::{self,
                  Value as Json};
-
-use crate::{error::{Result,
-                    SupError},
-            manager::{self,
-                      service::{hooks::HealthCheckHook,
-                                HealthCheck}}};
-
-use crate::feat;
+use std::{cell::Cell,
+          fmt,
+          fs::File,
+          io::{self,
+               Read},
+          net::{IpAddr,
+                SocketAddr,
+                SocketAddrV4,
+                ToSocketAddrs},
+          ops::{Deref,
+                DerefMut},
+          option,
+          result,
+          str::FromStr,
+          sync::{Arc,
+                 Condvar,
+                 Mutex,
+                 RwLock},
+          thread};
 
 const APIDOCS: &str = include_str!(concat!(env!("OUT_DIR"), "/api.html"));
 pub const HTTP_THREADS_ENVVAR: &str = "HAB_SUP_HTTP_THREADS";
