@@ -1382,7 +1382,6 @@ impl Manager {
         svc_states
             .into_iter()
             .filter_map(|(ident, ss)| {
-                println!(">>>>>>> ss = {:?}", ss);
                 match ss {
                     ServiceState {
                         disk: Some((DesiredState::Up, disk_spec)),
