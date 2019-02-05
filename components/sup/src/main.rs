@@ -445,6 +445,7 @@ fn enable_features_from_env() {
         (feat::RedactHTTP, "REDACT_HTTP"),
         (feat::IgnoreSignals, "IGNORE_SIGNALS"),
         (feat::InstallHook, "INSTALL_HOOK"),
+        (feat::EventStream, "EVENT_STREAM"),
     ];
 
     // If the environment variable for a flag is set to _anything_ but
