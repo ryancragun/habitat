@@ -23,6 +23,7 @@ use habitat_butterfly::Server as ButterflyServer;
 use habitat_common::{types::EnvConfig,
                      ui::UI};
 use habitat_core::{env as henv,
+                   outputln,
                    package::{PackageIdent,
                              PackageInstall,
                              PackageTarget},

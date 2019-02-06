@@ -14,14 +14,15 @@
 
 //! All the code for responding to Supervisor commands
 
-use crate::{butterfly,
-            common::{command::package::install::InstallSource,
-                     ui::UIWriter},
-            ctl_gateway::CtlRequest,
+use crate::{ctl_gateway::CtlRequest,
             error::{Error,
                     Result},
-            hcore::{package::{Identifiable,
+            hcore::{fs::FS_ROOT_PATH,
+                    outputln,
+                    package::{metadata::PackageType,
+                              Identifiable,
                               PackageIdent,
+                              PackageInstall,
                               PackageTarget},
                     service::ServiceGroup,
                     ChannelIdent},
@@ -37,6 +38,10 @@ use crate::{butterfly,
                              ErrCode,
                              NetResult}},
             util};
+use habitat_butterfly as butterfly;
+use habitat_common::{command::package::install::InstallSource,
+                     templating::package::Pkg,
+                     ui::UIWriter};
 use serde_json;
 use std::{fmt,
           fs,
