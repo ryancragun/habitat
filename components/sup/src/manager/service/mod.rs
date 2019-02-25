@@ -31,55 +31,69 @@ pub mod spec;
 mod supervisor;
 mod terminator;
 
-
+use self::{context::RenderContext,
+           hooks::HookTable,
+           supervisor::Supervisor};
+pub use self::{health::HealthCheck,
+               hooks::HealthCheckHook,
+               spec::{DesiredState,
+                      IntoServiceSpec,
+                      ServiceSpec}};
+use crate::{census::{CensusGroup,
+                     CensusRing,
+                     ElectionStatus,
+                     ServiceFile},
+            error::{Error,
+                    Result,
+                    SupError},
+            manager::{FsCfg,
+                      GatewayState,
+                      Sys}};
+use futures::{future,
+              Future,
+              IntoFuture};
+use habitat_butterfly::rumor::service::Service as ServiceRumor;
+use habitat_common::templating::{config::CfgRenderer,
+                                 hooks::Hook};
 pub use habitat_common::templating::{config::{Cfg,
                                               UserConfigPath},
                                      package::{Env,
                                                Pkg,
-                                               PkgProxy}},
-use self::{context::RenderContext, hooks::HookTable, spec::ServiceBind, supervisor::Supervisor};
-pub use self::{
-    health::HealthCheck,
-    hooks::HealthCheckHook,
-    spec::{DesiredState, IntoServiceSpec, ServiceSpec},
-};
-use crate::{
-    census::{CensusGroup, CensusRing, ElectionStatus, ServiceFile},
-    error::{Error, Result, SupError},
-    manager::{FsCfg, GatewayState, Sys},
-};
-use futures::{future, Future, IntoFuture};
-use habitat_butterfly::rumor::service::Service as ServiceRumor;
-use habitat_common::templating::{
-    config::{Cfg, CfgRenderer},
-    hooks::Hook,
-    package::{Pkg, PkgProxy},
-};
-use habitat_core::{
-    crypto::hash,
-    fs::{atomic_write, svc_hooks_path, SvcDir, FS_ROOT_PATH},
-    package::{metadata::Bind, PackageIdent, PackageInstall},
-    service::{HealthCheckInterval, ServiceBind, ServiceGroup},
-    ChannelIdent,
-};
+                                               PkgProxy}};
+use habitat_core::{crypto::hash,
+                   fs::{atomic_write,
+                        svc_hooks_path,
+                        SvcDir,
+                        FS_ROOT_PATH},
+                   package::{metadata::Bind,
+                             PackageIdent,
+                             PackageInstall},
+                   service::{HealthCheckInterval,
+                             ServiceBind,
+                             ServiceGroup},
+                   ChannelIdent};
 use habitat_launcher_client::LauncherCli;
 use habitat_sup_protocol::types::BindingMode;
-pub use habitat_sup_protocol::types::{ProcessState, Topology, UpdateStrategy};
-use prometheus::{HistogramTimer, HistogramVec};
-use serde::{ser::SerializeStruct, Serialize, Serializer};
-        use std::{
-            self
-    collections::HashSet,
-    fmt,
-    fs::{self, File},
-    io::prelude::*,
-    path::{Path, PathBuf},
-    result,
-    sync::{Arc, RwLock},
-    time::{Duration, Instant},
-};
+pub use habitat_sup_protocol::types::{ProcessState,
+                                      Topology,
+                                      UpdateStrategy};
+use prometheus::{HistogramTimer,
+                 HistogramVec};
+use serde::{ser::SerializeStruct,
+            Serialize,
+            Serializer};
+use std::{self,
+          collections::HashSet,
+          fmt,
+          fs,
+          path::{Path,
+                 PathBuf},
+          result,
+          sync::{Arc,
+                 RwLock},
+          time::{Duration,
+                 Instant}};
 use time::Timespec;
-
 
 static LOGKEY: &'static str = "SR";
 
@@ -741,6 +755,7 @@ impl Service {
             );
         }
     }
+
     // This hook method looks different from all the others because
     // it's the only one that runs async right now.
     fn post_stop(&self) -> Option<hook_runner::HookRunner<hooks::PostStopHook>> {
@@ -1194,20 +1209,12 @@ impl<'a> Serialize for ServiceProxy<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{path::PathBuf,
-              str::FromStr,
-              time::Instant};
-    use crate::hcore::package::{ident::PackageIdent,
-                                PackageInstall};
-    use serde_json;
-    use self::{manager::{sys::Sys,
-                         FsCfg},
-               ServiceSpec};
-        use habitat_common::types::ListenCtlAddr;
-        use crate::{
-                config::GossipListenAddr,
+    use crate::{config::GossipListenAddr,
                 http_gateway,
                 test_helpers::*};
+    use habitat_common::types::ListenCtlAddr;
+    use serde_json;
+    use std::str::FromStr;
 
     fn initialize_test_service() -> Service {
         let listen_ctl_addr =

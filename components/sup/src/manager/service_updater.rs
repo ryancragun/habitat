@@ -13,7 +13,6 @@
 // limitations under the License.
 
 use crate::{census::CensusRing,
-            common::types::EnvConfig,
             manager::{periodic::Periodic,
                       service::{Service,
                                 Topology,
