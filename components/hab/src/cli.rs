@@ -12,35 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{net::SocketAddr,
-          path::Path,
-          result,
-          str::FromStr};
+use std::{net::SocketAddr, path::Path, result, str::FromStr};
 
-use crate::{hcore::{crypto::keys::PairType,
-                    package::{ident,
-                              Identifiable,
-                              PackageIdent,
-                              PackageTarget},
-                    service::{HealthCheckInterval,
-                              ServiceGroup}},
-            protocol};
-use clap::{App,
-           AppSettings,
-           Arg};
+use crate::{
+    hcore::{
+        crypto::keys::PairType,
+        package::{ident, Identifiable, PackageIdent, PackageTarget},
+        service::{HealthCheckInterval, ServiceGroup},
+    },
+    protocol,
+};
+use clap::{App, AppSettings, Arg};
 use url::Url;
 
-use crate::{command::studio,
-            common::{cli_defaults::{GOSSIP_DEFAULT_ADDR,
-                                    GOSSIP_LISTEN_ADDRESS_ENVVAR,
-                                    LISTEN_CTL_DEFAULT_ADDR_STRING,
-                                    LISTEN_HTTP_ADDRESS_ENVVAR,
-                                    LISTEN_HTTP_DEFAULT_ADDR,
-                                    RING_ENVVAR,
-                                    RING_KEY_ENVVAR},
-                     types::{EnvConfig,
-                             ListenCtlAddr}},
-            feat};
+use crate::{
+    command::studio,
+    common::{
+        cli_defaults::{
+            GOSSIP_DEFAULT_ADDR, GOSSIP_LISTEN_ADDRESS_ENVVAR, LISTEN_CTL_DEFAULT_ADDR_STRING,
+            LISTEN_HTTP_ADDRESS_ENVVAR, LISTEN_HTTP_DEFAULT_ADDR, RING_ENVVAR, RING_KEY_ENVVAR,
+        },
+        types::{EnvConfig, ListenCtlAddr},
+    },
+    feat,
+};
 
 pub fn get() -> App<'static, 'static> {
     let alias_apply = sub_config_apply()
@@ -893,8 +888,9 @@ pub fn sub_sup_run() -> App<'static, 'static> {
     // is displayed confusingly as `hab-sup`
     // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
     (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
-          (@arg LISTEN_GOSSIP: --("listen-gossip") env(GOSSIP_LISTEN_ADDRESS_ENVVAR) default_value(&GOSSIP_DEFAULT_ADDR) {valid_socket_addr}
+    (@arg LISTEN_GOSSIP: --("listen-gossip") env(GOSSIP_LISTEN_ADDRESS_ENVVAR) default_value(&GOSSIP_DEFAULT_ADDR) {valid_socket_addr}
         "The listen address for the Gossip System Gateway.")
+    (@arg LOCAL_MODE: --("local-mode") "Start the supervisor in local mode. This sets the gossip listen address to 127.0.0.2 effectively scoping it to only the local node. This is equivalent to using 127.0.0.2 as the ip for --listen-gossip. Note: Setting local mode will override values for --listen-gossip, including values set via the env variable.")
     (@arg LISTEN_HTTP: --("listen-http") env(LISTEN_HTTP_ADDRESS_ENVVAR) default_value(&LISTEN_HTTP_DEFAULT_ADDR) {valid_socket_addr}
         "The listen address for the HTTP Gateway.")
     (@arg HTTP_DISABLE: --("http-disable") -D
