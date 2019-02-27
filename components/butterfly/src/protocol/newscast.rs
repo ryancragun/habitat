@@ -48,6 +48,7 @@ impl From<CDeparture> for Rumor {
     fn from(value: CDeparture) -> Self {
         let payload = Departure {
             member_id: Some(value.member_id),
+            uuid: Some(value.uuid),
         };
         Rumor {
             type_: RumorType::Departure as i32,
@@ -67,6 +68,7 @@ impl From<CElection> for Rumor {
             suitability: Some(value.suitability),
             status: Some(value.status as i32),
             votes: value.votes.clone(),
+            uuid: Some(value.uuid),
         };
         Rumor {
             type_: RumorType::Election as i32,
@@ -86,6 +88,7 @@ impl From<CElectionUpdate> for Rumor {
             suitability: Some(value.suitability),
             status: Some(value.status as i32),
             votes: value.votes.clone(),
+            uuid: Some(value.uuid.clone()),
         };
         Rumor {
             type_: RumorType::ElectionUpdate as i32,
@@ -106,6 +109,7 @@ impl From<CService> for Rumor {
             pkg: Some(value.pkg),
             cfg: Some(value.cfg),
             sys: Some(value.sys.into()),
+            uuid: Some(value.uuid),
         };
         Rumor {
             type_: RumorType::Service as i32,
@@ -123,6 +127,7 @@ impl From<CServiceConfig> for Rumor {
             incarnation: Some(value.incarnation),
             encrypted: Some(value.encrypted),
             config: Some(value.config),
+            uuid: Some(value.uuid),
         };
         Rumor {
             type_: RumorType::ServiceConfig as i32,
@@ -141,6 +146,7 @@ impl From<CServiceFile> for Rumor {
             encrypted: Some(value.encrypted),
             filename: Some(value.filename),
             body: Some(value.body),
+            uuid: Some(value.uuid),
         };
         Rumor {
             type_: RumorType::ServiceFile as i32,

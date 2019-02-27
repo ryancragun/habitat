@@ -13,6 +13,8 @@ pub struct Election {
     pub status: ::std::option::Option<i32>,
     #[prost(string, repeated, tag="6")]
     pub votes: ::std::vec::Vec<String>,
+    #[prost(string, optional, tag="7")]
+    pub uuid: ::std::option::Option<String>,
 }
 pub mod election {
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
@@ -40,6 +42,8 @@ pub struct Service {
     pub cfg: ::std::option::Option<Vec<u8>>,
     #[prost(message, optional, tag="12")]
     pub sys: ::std::option::Option<SysInfo>,
+    #[prost(string, optional, tag="7")]
+    pub uuid: ::std::option::Option<String>,
 }
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize)]
@@ -52,6 +56,8 @@ pub struct ServiceConfig {
     pub encrypted: ::std::option::Option<bool>,
     #[prost(bytes, optional, tag="4")]
     pub config: ::std::option::Option<Vec<u8>>,
+    #[prost(string, optional, tag="5")]
+    pub uuid: ::std::option::Option<String>,
 }
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize)]
@@ -66,6 +72,8 @@ pub struct ServiceFile {
     pub filename: ::std::option::Option<String>,
     #[prost(bytes, optional, tag="5")]
     pub body: ::std::option::Option<Vec<u8>>,
+    #[prost(string, optional, tag="6")]
+    pub uuid: ::std::option::Option<String>,
 }
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize)]
@@ -92,6 +100,8 @@ pub struct SysInfo {
 pub struct Departure {
     #[prost(string, optional, tag="1")]
     pub member_id: ::std::option::Option<String>,
+    #[prost(string, optional, tag="2")]
+    pub uuid: ::std::option::Option<String>,
 }
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize)]

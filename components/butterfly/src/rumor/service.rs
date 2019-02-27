@@ -16,19 +16,6 @@
 //!
 //! Service rumors declare that a given `Server` is running this Service.
 
-use std::{cmp::Ordering,
-          mem,
-          result,
-          str::FromStr};
-
-use serde::{ser::SerializeStruct,
-            Serialize,
-            Serializer};
-use toml;
-
-use habitat_core::{package::Identifiable,
-                   service::ServiceGroup};
-
 use crate::{error::{Error,
                     Result},
             protocol::{self,
@@ -37,6 +24,17 @@ use crate::{error::{Error,
             rumor::{Rumor,
                     RumorPayload,
                     RumorType}};
+use habitat_core::{package::Identifiable,
+                   service::ServiceGroup};
+use serde::{ser::SerializeStruct,
+            Serialize,
+            Serializer};
+use std::{cmp::Ordering,
+          mem,
+          result,
+          str::FromStr};
+use toml;
+use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub struct Service {
@@ -47,6 +45,7 @@ pub struct Service {
     pub pkg: String,
     pub cfg: Vec<u8>,
     pub sys: SysInfo,
+    pub uuid: String,
 }
 
 // Ensures that `cfg` is rendered as a map, and not an array of bytes
@@ -124,6 +123,7 @@ impl Service {
                         .expect("Struct should serialize to bytes")
                 })
                 .unwrap_or_default(),
+            uuid: Uuid::new_v4().to_simple_ref().to_string(),
         }
     }
 }
@@ -152,6 +152,9 @@ impl FromProto<newscast::Rumor> for Service {
                 .sys
                 .ok_or(Error::ProtocolMismatch("sys"))
                 .and_then(SysInfo::from_proto)?,
+            uuid: payload
+                .uuid
+                .unwrap_or(Uuid::new_v4().to_simple_ref().to_string()),
         })
     }
 }
@@ -166,6 +169,7 @@ impl From<Service> for newscast::Service {
             pkg: Some(value.pkg),
             cfg: Some(value.cfg),
             sys: Some(value.sys.into()),
+            uuid: Some(value.uuid),
         }
     }
 }
@@ -187,6 +191,8 @@ impl Rumor for Service {
     fn id(&self) -> &str { &self.member_id }
 
     fn key(&self) -> &str { self.service_group.as_ref() }
+
+    fn uuid(&self) -> &str { &self.uuid }
 }
 
 #[derive(Debug, Clone, Serialize)]

@@ -29,10 +29,12 @@ use crate::{error::{Error,
             rumor::{Rumor,
                     RumorPayload,
                     RumorType}};
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Departure {
     pub member_id: String,
+    pub uuid: String,
 }
 
 impl Departure {
@@ -42,6 +44,7 @@ impl Departure {
     {
         Departure {
             member_id: member_id.to_string(),
+            uuid: Uuid::new_v4().to_simple_ref().to_string(),
         }
     }
 }
@@ -58,6 +61,9 @@ impl FromProto<ProtoRumor> for Departure {
             member_id: payload
                 .member_id
                 .ok_or(Error::ProtocolMismatch("member-id"))?,
+            uuid: payload
+                .uuid
+                .unwrap_or(Uuid::new_v4().to_simple_ref().to_string()),
         })
     }
 }
@@ -66,6 +72,7 @@ impl From<Departure> for newscast::Departure {
     fn from(value: Departure) -> Self {
         newscast::Departure {
             member_id: Some(value.member_id),
+            uuid: Some(value.uuid),
         }
     }
 }
@@ -78,6 +85,8 @@ impl Rumor for Departure {
     fn id(&self) -> &str { &self.member_id }
 
     fn key(&self) -> &str { "departure" }
+
+    fn uuid(&self) -> &str { &self.uuid }
 }
 
 impl PartialOrd for Departure {
