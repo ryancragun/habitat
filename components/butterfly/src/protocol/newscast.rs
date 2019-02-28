@@ -12,19 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fmt;
-
+pub use self::rumor::{Payload as RumorPayload,
+                      Type as RumorType};
 use crate::rumor::{departure::Departure as CDeparture,
                    election::{Election as CElection,
                               ElectionUpdate as CElectionUpdate},
                    service::Service as CService,
                    service_config::ServiceConfig as CServiceConfig,
                    service_file::ServiceFile as CServiceFile};
+use std::fmt;
 
 include!("../generated/butterfly.newscast.rs");
-
-pub use self::rumor::{Payload as RumorPayload,
-                      Type as RumorType};
 
 impl fmt::Display for RumorType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -46,9 +44,12 @@ impl fmt::Display for RumorType {
 
 impl From<CDeparture> for Rumor {
     fn from(value: CDeparture) -> Self {
+        let (exp, lref) = value.ttl.for_proto();
         let payload = Departure {
             member_id: Some(value.member_id),
             uuid: Some(value.uuid),
+            expiration: Some(exp),
+            last_refresh: Some(lref),
         };
         Rumor {
             type_: RumorType::Departure as i32,
@@ -61,6 +62,7 @@ impl From<CDeparture> for Rumor {
 
 impl From<CElection> for Rumor {
     fn from(value: CElection) -> Self {
+        let (exp, lref) = value.ttl.for_proto();
         let payload = Election {
             member_id: Some(value.member_id.clone()),
             service_group: Some(value.service_group.to_string()),
@@ -69,6 +71,8 @@ impl From<CElection> for Rumor {
             status: Some(value.status as i32),
             votes: value.votes.clone(),
             uuid: Some(value.uuid),
+            expiration: Some(exp),
+            last_refresh: Some(lref),
         };
         Rumor {
             type_: RumorType::Election as i32,
@@ -81,6 +85,7 @@ impl From<CElection> for Rumor {
 
 impl From<CElectionUpdate> for Rumor {
     fn from(value: CElectionUpdate) -> Self {
+        let (exp, lref) = value.ttl.for_proto();
         let payload = Election {
             member_id: Some(value.member_id.clone()),
             service_group: Some(value.service_group.to_string()),
@@ -89,6 +94,8 @@ impl From<CElectionUpdate> for Rumor {
             status: Some(value.status as i32),
             votes: value.votes.clone(),
             uuid: Some(value.uuid.clone()),
+            expiration: Some(exp),
+            last_refresh: Some(lref),
         };
         Rumor {
             type_: RumorType::ElectionUpdate as i32,
@@ -101,6 +108,7 @@ impl From<CElectionUpdate> for Rumor {
 
 impl From<CService> for Rumor {
     fn from(value: CService) -> Self {
+        let (exp, lref) = value.ttl.for_proto();
         let payload = Service {
             member_id: Some(value.member_id.clone()),
             service_group: Some(value.service_group.to_string()),
@@ -110,6 +118,8 @@ impl From<CService> for Rumor {
             cfg: Some(value.cfg),
             sys: Some(value.sys.into()),
             uuid: Some(value.uuid),
+            expiration: Some(exp),
+            last_refresh: Some(lref),
         };
         Rumor {
             type_: RumorType::Service as i32,
@@ -122,12 +132,15 @@ impl From<CService> for Rumor {
 
 impl From<CServiceConfig> for Rumor {
     fn from(value: CServiceConfig) -> Self {
+        let (exp, lref) = value.ttl.for_proto();
         let payload = ServiceConfig {
             service_group: Some(value.service_group.to_string()),
             incarnation: Some(value.incarnation),
             encrypted: Some(value.encrypted),
             config: Some(value.config),
             uuid: Some(value.uuid),
+            expiration: Some(exp),
+            last_refresh: Some(lref),
         };
         Rumor {
             type_: RumorType::ServiceConfig as i32,
@@ -140,6 +153,7 @@ impl From<CServiceConfig> for Rumor {
 
 impl From<CServiceFile> for Rumor {
     fn from(value: CServiceFile) -> Self {
+        let (exp, lref) = value.ttl.for_proto();
         let payload = ServiceFile {
             service_group: Some(value.service_group.to_string()),
             incarnation: Some(value.incarnation),
@@ -147,6 +161,8 @@ impl From<CServiceFile> for Rumor {
             filename: Some(value.filename),
             body: Some(value.body),
             uuid: Some(value.uuid),
+            expiration: Some(exp),
+            last_refresh: Some(lref),
         };
         Rumor {
             type_: RumorType::ServiceFile as i32,

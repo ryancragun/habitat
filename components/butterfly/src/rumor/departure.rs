@@ -28,6 +28,7 @@ use crate::{error::{Error,
                        FromProto},
             rumor::{Rumor,
                     RumorPayload,
+                    RumorTTL,
                     RumorType}};
 use uuid::Uuid;
 
@@ -35,6 +36,7 @@ use uuid::Uuid;
 pub struct Departure {
     pub member_id: String,
     pub uuid: String,
+    pub ttl: RumorTTL,
 }
 
 impl Departure {
@@ -45,6 +47,7 @@ impl Departure {
         Departure {
             member_id: member_id.to_string(),
             uuid: Uuid::new_v4().to_simple_ref().to_string(),
+            ttl: RumorTTL::default(),
         }
     }
 }
@@ -57,6 +60,9 @@ impl FromProto<ProtoRumor> for Departure {
             RumorPayload::Departure(payload) => payload,
             _ => panic!("from-bytes departure"),
         };
+
+        let ttl = RumorTTL::from_proto(payload.expiration, payload.last_refresh)?;
+
         Ok(Departure {
             member_id: payload
                 .member_id
@@ -64,15 +70,19 @@ impl FromProto<ProtoRumor> for Departure {
             uuid: payload
                 .uuid
                 .unwrap_or(Uuid::new_v4().to_simple_ref().to_string()),
+            ttl,
         })
     }
 }
 
 impl From<Departure> for newscast::Departure {
     fn from(value: Departure) -> Self {
+        let (exp, lref) = value.ttl.for_proto();
         newscast::Departure {
             member_id: Some(value.member_id),
             uuid: Some(value.uuid),
+            expiration: Some(exp),
+            last_refresh: Some(lref),
         }
     }
 }
@@ -87,6 +97,8 @@ impl Rumor for Departure {
     fn key(&self) -> &str { "departure" }
 
     fn uuid(&self) -> &str { &self.uuid }
+
+    fn ttl(&self) -> &RumorTTL { &self.ttl }
 }
 
 impl PartialOrd for Departure {

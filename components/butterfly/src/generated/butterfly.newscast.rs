@@ -15,6 +15,10 @@ pub struct Election {
     pub votes: ::std::vec::Vec<String>,
     #[prost(string, optional, tag="7")]
     pub uuid: ::std::option::Option<String>,
+    #[prost(string, optional, tag="8")]
+    pub expiration: ::std::option::Option<String>,
+    #[prost(string, optional, tag="9")]
+    pub last_refresh: ::std::option::Option<String>,
 }
 pub mod election {
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
@@ -44,6 +48,10 @@ pub struct Service {
     pub sys: ::std::option::Option<SysInfo>,
     #[prost(string, optional, tag="7")]
     pub uuid: ::std::option::Option<String>,
+    #[prost(string, optional, tag="13")]
+    pub expiration: ::std::option::Option<String>,
+    #[prost(string, optional, tag="14")]
+    pub last_refresh: ::std::option::Option<String>,
 }
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize)]
@@ -58,6 +66,10 @@ pub struct ServiceConfig {
     pub config: ::std::option::Option<Vec<u8>>,
     #[prost(string, optional, tag="5")]
     pub uuid: ::std::option::Option<String>,
+    #[prost(string, optional, tag="6")]
+    pub expiration: ::std::option::Option<String>,
+    #[prost(string, optional, tag="7")]
+    pub last_refresh: ::std::option::Option<String>,
 }
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize)]
@@ -74,6 +86,10 @@ pub struct ServiceFile {
     pub body: ::std::option::Option<Vec<u8>>,
     #[prost(string, optional, tag="6")]
     pub uuid: ::std::option::Option<String>,
+    #[prost(string, optional, tag="7")]
+    pub expiration: ::std::option::Option<String>,
+    #[prost(string, optional, tag="8")]
+    pub last_refresh: ::std::option::Option<String>,
 }
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize)]
@@ -102,6 +118,10 @@ pub struct Departure {
     pub member_id: ::std::option::Option<String>,
     #[prost(string, optional, tag="2")]
     pub uuid: ::std::option::Option<String>,
+    #[prost(string, optional, tag="3")]
+    pub expiration: ::std::option::Option<String>,
+    #[prost(string, optional, tag="4")]
+    pub last_refresh: ::std::option::Option<String>,
 }
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize)]

@@ -24,6 +24,7 @@ use crate::{error::{Error,
                        FromProto},
             rumor::{Rumor,
                     RumorPayload,
+                    RumorTTL,
                     RumorType}};
 use habitat_core::{crypto::{default_cache_key_path,
                             keys::box_key_pair::WrappedSealedBox,
@@ -43,6 +44,7 @@ pub struct ServiceFile {
     pub filename: String,
     pub body: Vec<u8>,
     pub uuid: String,
+    pub ttl: RumorTTL,
 }
 
 impl PartialOrd for ServiceFile {
@@ -85,6 +87,7 @@ impl ServiceFile {
             filename: filename.into(),
             body,
             uuid: Uuid::new_v4().to_simple_ref().to_string(),
+            ttl: RumorTTL::default(),
         }
     }
 
@@ -121,6 +124,9 @@ impl FromProto<ProtoRumor> for ServiceFile {
             RumorPayload::ServiceFile(payload) => payload,
             _ => panic!("from-bytes service-config"),
         };
+
+        let ttl = RumorTTL::from_proto(payload.expiration, payload.last_refresh)?;
+
         Ok(ServiceFile {
             from_id: rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?,
             service_group: payload
@@ -136,12 +142,14 @@ impl FromProto<ProtoRumor> for ServiceFile {
             uuid: payload
                 .uuid
                 .unwrap_or(Uuid::new_v4().to_simple_ref().to_string()),
+            ttl,
         })
     }
 }
 
 impl From<ServiceFile> for newscast::ServiceFile {
     fn from(value: ServiceFile) -> Self {
+        let (exp, lref) = value.ttl.for_proto();
         newscast::ServiceFile {
             service_group: Some(value.service_group.to_string()),
             incarnation: Some(value.incarnation),
@@ -149,6 +157,8 @@ impl From<ServiceFile> for newscast::ServiceFile {
             filename: Some(value.filename),
             body: Some(value.body),
             uuid: Some(value.uuid),
+            expiration: Some(exp),
+            last_refresh: Some(lref),
         }
     }
 }
@@ -172,6 +182,8 @@ impl Rumor for ServiceFile {
     fn key(&self) -> &str { &self.service_group }
 
     fn uuid(&self) -> &str { &self.uuid }
+
+    fn ttl(&self) -> &RumorTTL { &self.ttl }
 }
 
 #[cfg(test)]

@@ -22,9 +22,6 @@
 //! devolve to a single, universal rumor, which when it is received by the winner will result in
 //! the election finishing. There can, in the end, be only one.
 
-use std::ops::{Deref,
-               DerefMut};
-
 pub use crate::protocol::newscast::{election::Status as ElectionStatus,
                                     Election as ProtoElection};
 use crate::{error::{Error,
@@ -35,7 +32,10 @@ use crate::{error::{Error,
                        FromProto},
             rumor::{Rumor,
                     RumorPayload,
+                    RumorTTL,
                     RumorType}};
+use std::ops::{Deref,
+               DerefMut};
 use uuid::Uuid;
 
 pub trait ElectionRumor {
@@ -57,6 +57,7 @@ pub struct Election {
     pub status: ElectionStatus,
     pub votes: Vec<String>,
     pub uuid: String,
+    pub ttl: RumorTTL,
 }
 
 impl Election {
@@ -85,6 +86,7 @@ impl Election {
             },
             votes: vec![from_id],
             uuid: Uuid::new_v4().to_simple_ref().to_string(),
+            ttl: RumorTTL::default(),
         }
     }
 
@@ -141,6 +143,7 @@ impl FromProto<ProtoRumor> for Election {
             _ => panic!("from-bytes election"),
         };
         let from_id = rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?;
+        let ttl = RumorTTL::from_proto(payload.expiration, payload.last_refresh)?;
         Ok(Election {
             member_id: from_id.clone(),
             service_group: payload
@@ -156,12 +159,14 @@ impl FromProto<ProtoRumor> for Election {
             uuid: payload
                 .uuid
                 .unwrap_or(Uuid::new_v4().to_simple_ref().to_string()),
+            ttl,
         })
     }
 }
 
 impl From<Election> for newscast::Election {
     fn from(value: Election) -> Self {
+        let (exp, lref) = value.ttl.for_proto();
         newscast::Election {
             member_id: Some(value.member_id),
             service_group: Some(value.service_group.to_string()),
@@ -170,6 +175,8 @@ impl From<Election> for newscast::Election {
             status: Some(value.status as i32),
             votes: value.votes,
             uuid: Some(value.uuid),
+            expiration: Some(exp),
+            last_refresh: Some(lref),
         }
     }
 }
@@ -228,6 +235,8 @@ impl Rumor for Election {
     fn key(&self) -> &str { self.service_group.as_ref() }
 
     fn uuid(&self) -> &str { &self.uuid }
+
+    fn ttl(&self) -> &RumorTTL { &self.ttl }
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -293,6 +302,8 @@ impl Rumor for ElectionUpdate {
     fn key(&self) -> &str { self.0.key() }
 
     fn uuid(&self) -> &str { &self.0.uuid }
+
+    fn ttl(&self) -> &RumorTTL { &self.0.ttl }
 }
 
 #[cfg(test)]
