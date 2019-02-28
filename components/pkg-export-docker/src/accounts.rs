@@ -22,75 +22,64 @@ use std::fmt;
 #[derive(Debug)]
 pub struct EtcPasswdEntry {
     pub name: String,
-    pub uid: u32,
+    pub uid:  u32,
     // Primary GID
     pub gid: u32,
 }
 
 impl EtcPasswdEntry {
     pub fn new<S>(name: S, uid: u32, gid: u32) -> Self
-    where
-        S: ToString,
+        where S: ToString
     {
-        Self {
-            name: name.to_string(),
-            uid,
-            gid,
-        }
+        Self { name: name.to_string(),
+               uid,
+               gid }
     }
 }
 
 impl fmt::Display for EtcPasswdEntry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{name}:x:{uid}:{gid}:{name} User:/:/bin/false",
-            name = self.name,
-            uid = self.uid,
-            gid = self.gid
-        )
+        write!(f,
+               "{name}:x:{uid}:{gid}:{name} User:/:/bin/false",
+               name = self.name,
+               uid = self.uid,
+               gid = self.gid)
     }
 }
 
 /// Represents an entry for a group in `/etc/group`
 #[derive(Debug)]
 pub struct EtcGroupEntry {
-    pub name: String,
-    pub gid: u32,
+    pub name:  String,
+    pub gid:   u32,
     pub users: Vec<String>,
 }
 
 impl EtcGroupEntry {
     pub fn empty_group<S>(name: S, gid: u32) -> Self
-    where
-        S: ToString,
+        where S: ToString
     {
         let users: Vec<String> = vec![];
         Self::group_with_users(name, gid, users)
     }
 
     pub fn group_with_users<S, U>(name: S, gid: u32, users: Vec<U>) -> Self
-    where
-        S: ToString,
-        U: ToString,
+        where S: ToString,
+              U: ToString
     {
-        Self {
-            name: name.to_string(),
-            gid,
-            users: users.iter().map(|u| u.to_string()).collect(),
-        }
+        Self { name: name.to_string(),
+               gid,
+               users: users.iter().map(|u| u.to_string()).collect() }
     }
 }
 
 impl fmt::Display for EtcGroupEntry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{name}:x:{gid}:{users}",
-            name = self.name,
-            gid = self.gid,
-            users = self.users.join(",")
-        )
+        write!(f,
+               "{name}:x:{gid}:{users}",
+               name = self.name,
+               gid = self.gid,
+               users = self.users.join(","))
     }
 }
 

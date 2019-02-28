@@ -122,9 +122,8 @@ mod tests {
         #[test]
         fn local_addr_for_gossip_listen_addr_returns_same_ip_for_a_specified_address() {
             let mut listen_addr = GossipListenAddr::default();
-            listen_addr
-                .0
-                .set_ip(IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)));
+            listen_addr.0
+                       .set_ip(IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)));
             assert!(!listen_addr.0.ip().is_loopback());
 
             let local_addr = listen_addr.local_addr();

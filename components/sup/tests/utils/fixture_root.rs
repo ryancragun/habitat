@@ -64,20 +64,17 @@ pub struct FixtureRoot(PathBuf);
 
 impl FixtureRoot {
     pub fn new<S>(suite_name: S) -> FixtureRoot
-    where
-        S: AsRef<Path>,
+        where S: AsRef<Path>
     {
-        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("tests")
-            .join("fixtures")
-            .join(suite_name.as_ref());
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
+                                                            .join("fixtures")
+                                                            .join(suite_name.as_ref());
         FixtureRoot(root)
     }
 
     /// There should be a spec file in the root of the fixture directory
     pub fn spec_path<P>(&self, package_name: P) -> PathBuf
-    where
-        P: ToString,
+        where P: ToString
     {
         self.0
             .to_path_buf()
@@ -87,8 +84,7 @@ impl FixtureRoot {
     /// Fixture files for an expanded bundle... think of what a .hart
     /// expands into.
     pub fn expanded_package_dir<P>(&self, package_name: P) -> PathBuf
-    where
-        P: AsRef<Path>,
+        where P: AsRef<Path>
     {
         self.0.to_path_buf().join(package_name.as_ref())
     }

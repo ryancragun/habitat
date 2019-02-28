@@ -95,20 +95,21 @@ impl fmt::Display for SrvClientError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let content = match *self {
             SrvClientError::ConnectionClosed => "Connection closed".to_string(),
-            SrvClientError::CtlSecretNotFound(ref path) => format!(
-                "No Supervisor CtlGateway secret set in `cli.toml` or found at {}. Run `hab \
-                 setup` or run the Supervisor for the first time before attempting to command the \
-                 Supervisor.",
-                path.display()
-            ),
+            SrvClientError::CtlSecretNotFound(ref path) => {
+                format!("No Supervisor CtlGateway secret set in `cli.toml` or found at {}. Run \
+                         `hab setup` or run the Supervisor for the first time before attempting \
+                         to command the Supervisor.",
+                        path.display())
+            }
             SrvClientError::Decode(ref err) => format!("{}", err),
-            SrvClientError::Io(ref err) => format!(
-                "Unable to contact the Supervisor.\n\nIf the Supervisor you are contacting is \
-                 local, this probably means it is not running. You can run a Supervisor in the \
-                 foreground with:\n\nhab sup run\n\nOr try restarting the Supervisor through your \
-                 operating system's init process or Windows service.\n\nOriginal error is:\n\n{}",
-                err
-            ),
+            SrvClientError::Io(ref err) => {
+                format!("Unable to contact the Supervisor.\n\nIf the Supervisor you are \
+                         contacting is local, this probably means it is not running. You can run \
+                         a Supervisor in the foreground with:\n\nhab sup run\n\nOr try restarting \
+                         the Supervisor through your operating system's init process or Windows \
+                         service.\n\nOriginal error is:\n\n{}",
+                        err)
+            }
             SrvClientError::NetErr(ref err) => format!("{}", err),
             SrvClientError::ParseColor(ref err) => format!("{}", err),
         };
@@ -148,26 +149,23 @@ pub struct SrvClient {
 
 impl SrvClient {
     /// Connect to the given remote server and authenticate with the given secret_key.
-    pub fn connect<S>(
-        addr: &ListenCtlAddr,
-        secret_key: S,
-    ) -> Box<dyn Future<Item = SrvClient, Error = SrvClientError> + 'static>
-    where
-        S: ToString,
+    pub fn connect<S>(addr: &ListenCtlAddr,
+                      secret_key: S)
+                      -> Box<dyn Future<Item = SrvClient, Error = SrvClientError> + 'static>
+        where S: ToString
     {
         let secret_key = secret_key.to_string();
-        let conn = TcpStream::connect(addr.as_ref())
-            .map_err(SrvClientError::from)
-            .and_then(move |socket| {
-                let client = Self::new(socket, None);
-                let mut request = protocol::ctl::Handshake::default();
-                request.secret_key = Some(secret_key);
-                client
-                    .call(request)
-                    .into_future()
-                    .map_err(|(err, _)| err)
-                    .and_then(move |(m, io)| {
-                        m.map_or_else(
+        let conn = TcpStream::connect(addr.as_ref()).map_err(SrvClientError::from)
+                                                    .and_then(move |socket| {
+                                                        let client = Self::new(socket, None);
+                                                        let mut request =
+                                                            protocol::ctl::Handshake::default();
+                                                        request.secret_key = Some(secret_key);
+                                                        client.call(request)
+                                                              .into_future()
+                                                              .map_err(|(err, _)| err)
+                                                              .and_then(move |(m, io)| {
+                                                                  m.map_or_else(
                             || Err(SrvClientError::ConnectionClosed),
                             move |m| {
                                 m.try_ok()
@@ -175,8 +173,8 @@ impl SrvClient {
                                     .and_then(|()| Ok(io.into_inner()))
                             },
                         )
-                    })
-            });
+                                                              })
+                                                    });
         Box::new(conn)
     }
 
@@ -188,17 +186,14 @@ impl SrvClient {
     }
 
     fn new(socket: TcpStream, current_txn: Option<SrvTxn>) -> Self {
-        SrvClient {
-            socket: Framed::new(socket, SrvCodec::new()),
-            current_txn: current_txn.unwrap_or_default(),
-        }
+        SrvClient { socket:      Framed::new(socket, SrvCodec::new()),
+                    current_txn: current_txn.unwrap_or_default(), }
     }
 
     /// Send a transactional request to the connected server. The returned `SrvReply` is a Stream
     /// containing one or more `SrvMessage` responses for the given request.
     pub fn call<T>(mut self, request: T) -> SrvReply
-    where
-        T: Into<SrvMessage> + fmt::Debug,
+        where T: Into<SrvMessage> + fmt::Debug
     {
         self.current_txn.increment();
         let mut msg: SrvMessage = request.into();
@@ -209,8 +204,7 @@ impl SrvClient {
 
     /// Send a non-transactional request to the connected server.
     pub fn cast<T>(self, request: T) -> SrvSend
-    where
-        T: Into<SrvMessage> + fmt::Debug,
+        where T: Into<SrvMessage> + fmt::Debug
     {
         let message: SrvMessage = request.into();
         self.socket.send(message)
@@ -220,18 +214,16 @@ impl SrvClient {
 /// A `Future` that will resolve into a stream of one or more `SrvMessage` replies.
 #[must_use = "futures do nothing unless polled"]
 pub struct SrvReply {
-    io: sink::Send<SrvStream>,
-    state: SrvReplyState,
+    io:     sink::Send<SrvStream>,
+    state:  SrvReplyState,
     txn_id: SrvTxn,
 }
 
 impl SrvReply {
     fn new(io: sink::Send<SrvStream>, txn_id: SrvTxn) -> Self {
-        SrvReply {
-            io,
-            state: SrvReplyState::Sending,
-            txn_id,
-        }
+        SrvReply { io,
+                   state: SrvReplyState::Sending,
+                   txn_id }
     }
 
     /// Consume the `SrvReply` and return the contained `SrvClient`.

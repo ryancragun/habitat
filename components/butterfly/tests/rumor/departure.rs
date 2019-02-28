@@ -22,9 +22,8 @@ fn two_members_share_departures() {
     net.mesh();
     net.add_departure(0);
     net.wait_for_gossip_rounds(1);
-    assert!(net[1]
-        .departure_store
-        .contains_rumor("departure", net[0].member_id()));
+    assert!(net[1].departure_store
+                  .contains_rumor("departure", net[0].member_id()));
 }
 
 #[test]
@@ -36,12 +35,10 @@ fn departure_via_client() {
     net.wait_for_gossip_rounds(1);
     let mut client =
         Client::new(net[0].gossip_addr(), None).expect("Cannot create Butterfly Client");
-    client
-        .send_departure(String::from(net[1].member_id()))
-        .expect("Cannot send the departure");
+    client.send_departure(String::from(net[1].member_id()))
+          .expect("Cannot send the departure");
     net.wait_for_gossip_rounds(1);
-    assert!(net[2]
-        .departure_store
-        .contains_rumor("departure", net[1].member_id()));
+    assert!(net[2].departure_store
+                  .contains_rumor("departure", net[1].member_id()));
     assert_wait_for_health_of!(net, 1, Health::Departed);
 }

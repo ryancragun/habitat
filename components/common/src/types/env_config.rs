@@ -34,16 +34,18 @@ pub trait EnvConfig: Default + FromStr {
     fn configured_value() -> Self {
         match henv::var(Self::ENVVAR) {
             Err(VarError::NotPresent) => Self::default(),
-            Ok(val) => match val.parse() {
-                Ok(parsed) => {
-                    Self::log_parsable(&val);
-                    parsed
+            Ok(val) => {
+                match val.parse() {
+                    Ok(parsed) => {
+                        Self::log_parsable(&val);
+                        parsed
+                    }
+                    Err(_) => {
+                        Self::log_unparsable(&val);
+                        Self::default()
+                    }
                 }
-                Err(_) => {
-                    Self::log_unparsable(&val);
-                    Self::default()
-                }
-            },
+            }
             Err(VarError::NotUnicode(nu)) => {
                 Self::log_unparsable(nu.to_string_lossy());
                 Self::default()
@@ -56,11 +58,9 @@ pub trait EnvConfig: Default + FromStr {
     ///
     /// By default, we log a message at the `warn` level.
     fn log_parsable(env_value: &str) {
-        warn!(
-            "Found '{}' in environment; using value '{}'",
-            Self::ENVVAR,
-            env_value
-        );
+        warn!("Found '{}' in environment; using value '{}'",
+              Self::ENVVAR,
+              env_value);
     }
 
     /// Overridable function for logging when an environment variable
@@ -68,13 +68,10 @@ pub trait EnvConfig: Default + FromStr {
     ///
     /// By default, we log a message at the `warn` level.
     fn log_unparsable<S>(env_value: S)
-    where
-        S: AsRef<str>,
+        where S: AsRef<str>
     {
-        warn!(
-            "Found '{}' in environment, but value '{}' was unparsable; using default instead",
-            Self::ENVVAR,
-            env_value.as_ref()
-        );
+        warn!("Found '{}' in environment, but value '{}' was unparsable; using default instead",
+              Self::ENVVAR,
+              env_value.as_ref());
     }
 }
